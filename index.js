@@ -1,68 +1,138 @@
-let moveBox = false;
-const delta = {};
 const canvas = document.getElementById("lienzo");
-let x = canvas.width / 4;
-let y = canvas.height / 4;
-const heightBox = 150;
-const widthBox = 150;
+const HEIGHT_BOX = 150;
+const WIDTH_BOX = 150;
+const WIDTH_BOX_ANGLE = 10;
+const HEIGHT_BOX_ANGLE = 10;
+const CENTER_X_CANVAS = canvas.width / 4;
+const CENTER_Y_CANVAS = canvas.height / 4;
 
-let canvasSelected = null;
+const canvasProps = {
+  elementSelected: null,
+  idAngleSelected: null,
+  boxOffset: {
+    x: 0,
+    y: 0,
+  },
+};
 
-console.log("Width", canvas.width);
-console.log("Height:", canvas.height);
+const idsAngles = ["top_left", "top_right", "bottom_left", "bottom_right"];
 
-const graphs = [
-  [x, y, widthBox, heightBox, "#000080"],
-  [x + 50, y + 50, widthBox, heightBox, "#800080"],
-  [x + 100, y + 100, widthBox, heightBox, "#008080"],
-]
+const boxs = [
+  {
+    id: "box1",
+    x: 50,
+    y: 50,
+    width: WIDTH_BOX,
+    height: HEIGHT_BOX,
+    weight: 1,
+    type: "stroke",
+    color: "#000080",
+    angleMoved: [],
+  },
+  {
+    id: "box2",
+    x: 175,
+    y: 125,
+    width: WIDTH_BOX,
+    height: HEIGHT_BOX,
+    weight: 1,
+    type: "stroke",
+    color: "#800080",
+    angleMoved: [],
+  },
+  {
+    id: "box3",
+    x: 245,
+    y: 189,
+    width: WIDTH_BOX,
+    height: HEIGHT_BOX,
+    weight: 1,
+    type: "stroke",
+    color: "#008080",
+    angleMoved: [],
+  },
+];
 
-console.log(graphs);
-
-const onDrawBox = (ctx, x, y, width, height, color = "#000000") => {
-  // ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.rect(x, y, width, height);
-  // ctx.stroke();
-  ctx.fill();
-  ctx.closePath();
-}
+const onAddAnglesBoxs = () => {
+  boxs.forEach((item) => {
+    item.angleMoved = [
+      (self) => ({
+        id: "top_left",
+        x: self.x,
+        y: self.y,
+        width: WIDTH_BOX_ANGLE,
+        height: HEIGHT_BOX_ANGLE,
+        weight: 1,
+        type: "fill",
+        color: self.color,
+      }),
+      (self) => ({
+        id: "top_right",
+        x: self.x + self.width - WIDTH_BOX_ANGLE,
+        y: self.y,
+        width: WIDTH_BOX_ANGLE,
+        height: HEIGHT_BOX_ANGLE,
+        weight: 1,
+        type: "fill",
+        color: self.color,
+      }),
+      (self) => ({
+        id: "bottom_left",
+        x: self.x,
+        y: self.y + self.height - HEIGHT_BOX_ANGLE,
+        width: WIDTH_BOX_ANGLE,
+        height: HEIGHT_BOX_ANGLE,
+        weight: 1,
+        type: "fill",
+        color: self.color,
+      }),
+      (self) => ({
+        id: "bottom_right",
+        x: self.x + self.width - WIDTH_BOX_ANGLE,
+        y: self.y + self.height - HEIGHT_BOX_ANGLE,
+        width: WIDTH_BOX_ANGLE,
+        height: HEIGHT_BOX_ANGLE,
+        weight: 1,
+        type: "fill",
+        color: self.color,
+      }),
+    ];
+  });
+};
 
 const oMousePosition = (event) => {
   const rect = canvas.getBoundingClientRect();
-  // console.log("clicked:", rect);
   return {
     x: Math.round(event.clientX - rect.left),
     y: Math.round(event.clientY - rect.top),
   };
-}
+};
 
 const onEvents = (ctx) => {
-  
   canvas.addEventListener(
     "mousedown",
     function (event) {
       const mousePosition = oMousePosition(event);
-      console.log("position mouse clicked! ", mousePosition)
-      
+
       drawMultiBox(ctx);
 
-      moveBox = true;
+      const boxReverse = [...boxs];
 
-      const graphReverse = [...graphs];
+      const boxSelected = boxReverse
+        .reverse()
+        .find(
+          (item) =>
+            mousePosition.x >= item.x &&
+            mousePosition.x <= item.x + item.width &&
+            mousePosition.y >= item.y &&
+            mousePosition.y <= item.y + item.height
+        );
 
-      canvasSelected = graphReverse.reverse().find(item =>
-        mousePosition.x >= item[0] && mousePosition.x <= (item[0] + item[2])
-        && mousePosition.y >= item[1] && mousePosition.y <= (item[1] + item[3]));
-
-      // delta.x = 0;
-      // delta.y = 0;
-      delta.x = Math.abs(mousePosition.x - canvasSelected[0]);
-      delta.y = Math.abs(mousePosition.y - canvasSelected[1]);
-
-      console.log("element selected:", canvasSelected);
+      if (boxSelected) {
+        canvasProps.elementSelected = boxSelected;
+        canvasProps.boxOffset.x = Math.abs(mousePosition.x - boxSelected.x);
+        canvasProps.boxOffset.y = Math.abs(mousePosition.y - boxSelected.y);
+      }
     },
     false
   );
@@ -72,21 +142,19 @@ const onEvents = (ctx) => {
     function (event) {
       const mousePosition = oMousePosition(event);
 
-
-      if (moveBox && canvasSelected) {
-        console.log("current position mouse:", mousePosition)
+      if (canvasProps.elementSelected) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        x = mousePosition.x - delta.x;
-        y = mousePosition.y - delta.y;
+        const x = mousePosition.x - canvasProps.boxOffset.x;
+        const y = mousePosition.y - canvasProps.boxOffset.y;
 
-        canvasSelected[0] = x;
-        canvasSelected[1] = y;
+        canvasProps.elementSelected.x = x;
+        canvasProps.elementSelected.y = y;
 
-        const graphIndex = graphs.findIndex(item => item[4] === canvasSelected[4]);
+        const graphIndex = boxs.findIndex(
+          (item) => item.id === canvasProps.elementSelected.id
+        );
 
-        graphs[graphIndex] = canvasSelected;
-
-        console.log("element modified:", canvasSelected);
+        boxs[graphIndex] = canvasProps.elementSelected;
 
         drawMultiBox(ctx);
       }
@@ -97,31 +165,49 @@ const onEvents = (ctx) => {
   canvas.addEventListener(
     "mouseup",
     function (event) {
-      moveBox = false;
-      console.log("new position:", canvasSelected);
-      canvasSelected = null;
+      canvasProps.elementSelected = null;
     },
     false
   );
-}
+};
+
+const onDrawBox = (
+  ctx,
+  { x, y, width, height, weight, type, color = "#000000" }
+) => {
+  ctx.lineWidth = weight;
+  ctx.beginPath();
+  ctx.rect(x, y, width, height);
+  if (type === "fill") {
+    ctx.fillStyle = color;
+    ctx.fill();
+  } else {
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  }
+  ctx.closePath();
+};
 
 const drawMultiBox = (ctx) => {
-  for (const graph of graphs) {
-    onDrawBox(ctx, graph[0], graph[1], graph[2], graph[3], graph[4]);
+  for (const box of boxs) {
+    onDrawBox(ctx, box);
+
+    for (const angle of box.angleMoved || []) {
+      onDrawBox(ctx, angle(box));
+    }
   }
-}
+};
 
 const onInitialDraw = () => {
   if (canvas && canvas.getContext) {
     const ctx = canvas.getContext("2d");
 
     if (ctx) {
-      // onDrawBox(ctx, x-50, y-50, widthBox, heightBox);
-      // onDrawBox(ctx, x, y, widthBox, heightBox);
       drawMultiBox(ctx);
       onEvents(ctx);
     }
   }
-}
+};
 
+onAddAnglesBoxs();
 onInitialDraw();
