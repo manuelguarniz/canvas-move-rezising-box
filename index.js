@@ -144,12 +144,16 @@ const onEvents = (ctx) => {
 
       if (boxSelected) {
         canvasProps.elementSelected = boxSelected;
-        canvasProps.boxOffset.x1 = Math.abs(boxSelected.x + boxSelected.width - mousePosition.x);
+        canvasProps.boxOffset.x1 = Math.abs(
+          boxSelected.x + boxSelected.width - mousePosition.x
+        );
         canvasProps.boxOffset.y1 = Math.abs(mousePosition.y - boxSelected.y);
         canvasProps.boxOffset.x2 = Math.abs(mousePosition.x - boxSelected.x);
         canvasProps.boxOffset.y2 = Math.abs(mousePosition.y - boxSelected.y);
         canvasProps.boxOffset.x3 = canvasProps.boxOffset.x2;
-        canvasProps.boxOffset.y3 = Math.abs(boxSelected.height + boxSelected.y - mousePosition.y);
+        canvasProps.boxOffset.y3 = Math.abs(
+          boxSelected.height + boxSelected.y - mousePosition.y
+        );
         canvasProps.boxOffset.x4 = canvasProps.boxOffset.x1;
         canvasProps.boxOffset.y4 = canvasProps.boxOffset.y3;
         canvasProps.idAngleSelected = angleSelected(mousePosition, boxSelected);
@@ -173,10 +177,12 @@ const onEvents = (ctx) => {
       };
     }
     if (canvasProps.idAngleSelected === "top_right") {
-
       const newPositionX = mousePosition.x + canvasProps.boxOffset.x1;
       const newPositionY = mousePosition.y - canvasProps.boxOffset.y1;
-      const desplazamientoX = newPositionX - canvasProps.elementSelected.width - canvasProps.elementSelected.x;
+      const desplazamientoX =
+        newPositionX -
+        canvasProps.elementSelected.width -
+        canvasProps.elementSelected.x;
       const desplazamientoY = canvasProps.elementSelected.y - newPositionY;
 
       return {
@@ -189,8 +195,10 @@ const onEvents = (ctx) => {
       const newPositionX = mousePosition.x - canvasProps.boxOffset.x3;
       const desplazamientoX = canvasProps.elementSelected.x - newPositionX;
 
-      const currentHeigth = canvasProps.elementSelected.height + canvasProps.elementSelected.y;
-      const desplazamientoY = mousePosition.y + canvasProps.boxOffset.y3 - currentHeigth;
+      const currentHeigth =
+        canvasProps.elementSelected.height + canvasProps.elementSelected.y;
+      const desplazamientoY =
+        mousePosition.y + canvasProps.boxOffset.y3 - currentHeigth;
 
       return {
         x: newPositionX,
@@ -200,8 +208,14 @@ const onEvents = (ctx) => {
     }
     if (canvasProps.idAngleSelected === "bottom_right") {
       return {
-        width: mousePosition.x - canvasProps.elementSelected.x + canvasProps.boxOffset.x4,
-        height: mousePosition.y - canvasProps.elementSelected.y + canvasProps.boxOffset.y4,
+        width:
+          mousePosition.x -
+          canvasProps.elementSelected.x +
+          canvasProps.boxOffset.x4,
+        height:
+          mousePosition.y -
+          canvasProps.elementSelected.y +
+          canvasProps.boxOffset.y4,
       };
     }
   };
@@ -224,9 +238,6 @@ const onEvents = (ctx) => {
         const newPosition = canvasProps.idAngleSelected
           ? calculateRenderizeBox(mousePosition)
           : calculatePositionBox(mousePosition);
-
-        console.log(canvasProps.elementSelected)
-        console.log(newPosition)
 
         canvasProps.elementSelected = {
           ...canvasProps.elementSelected,
