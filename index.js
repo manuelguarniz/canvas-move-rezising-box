@@ -108,6 +108,20 @@ const oMousePosition = (event) => {
   };
 };
 
+const identifyBoxClicked = (mousePosition, item) =>
+  mousePosition.x >= item.x &&
+  mousePosition.x <= item.x + item.width &&
+  mousePosition.y >= item.y &&
+  mousePosition.y <= item.y + item.height;
+
+const angleSelected = (mousePosition, boxSelected) => {
+  const anglesSelected = boxSelected.angleMoved
+    .map((item) => item(boxSelected))
+    .find((item) => identifyBoxClicked(mousePosition, item));
+
+  return anglesSelected?.id;
+};
+
 const onEvents = (ctx) => {
   canvas.addEventListener(
     "mousedown",
@@ -120,18 +134,13 @@ const onEvents = (ctx) => {
 
       const boxSelected = boxReverse
         .reverse()
-        .find(
-          (item) =>
-            mousePosition.x >= item.x &&
-            mousePosition.x <= item.x + item.width &&
-            mousePosition.y >= item.y &&
-            mousePosition.y <= item.y + item.height
-        );
+        .find((item) => identifyBoxClicked(mousePosition, item));
 
       if (boxSelected) {
         canvasProps.elementSelected = boxSelected;
         canvasProps.boxOffset.x = Math.abs(mousePosition.x - boxSelected.x);
         canvasProps.boxOffset.y = Math.abs(mousePosition.y - boxSelected.y);
+        canvasProps.idAngleSelected = angleSelected(mousePosition, boxSelected);
       }
     },
     false
@@ -166,6 +175,7 @@ const onEvents = (ctx) => {
     "mouseup",
     function (event) {
       canvasProps.elementSelected = null;
+      canvasProps.idAngleSelected = null;
     },
     false
   );
@@ -191,6 +201,10 @@ const onDrawBox = (
 const drawMultiBox = (ctx) => {
   for (const box of boxs) {
     onDrawBox(ctx, box);
+
+    box.angleMoved
+      .map((item) => item(box))
+      .forEach((item) => onDrawBox(ctx, item));
 
     for (const angle of box.angleMoved || []) {
       onDrawBox(ctx, angle(box));
