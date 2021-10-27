@@ -9,13 +9,18 @@ const CENTER_Y_CANVAS = canvas.height / 4;
 const canvasProps = {
   elementSelected: null,
   idAngleSelected: null,
+  // Offset segun cuadrante
   boxOffset: {
-    x: 0,
-    y: 0,
+    x1: 0,
+    y1: 0,
+    x2: 0,
+    y2: 0,
+    x3: 0,
+    y3: 0,
+    x4: 0,
+    y4: 0,
   },
 };
-
-const idsAngles = ["top_left", "top_right", "bottom_left", "bottom_right"];
 
 const boxs = [
   {
@@ -132,19 +137,81 @@ const onEvents = (ctx) => {
 
       const boxReverse = [...boxs];
 
+      // Invertir el orden para que la seleccion empiece desde el ultimo renderizado
       const boxSelected = boxReverse
         .reverse()
         .find((item) => identifyBoxClicked(mousePosition, item));
 
       if (boxSelected) {
         canvasProps.elementSelected = boxSelected;
-        canvasProps.boxOffset.x = Math.abs(mousePosition.x - boxSelected.x);
-        canvasProps.boxOffset.y = Math.abs(mousePosition.y - boxSelected.y);
+        canvasProps.boxOffset.x1 = Math.abs(boxSelected.x + boxSelected.width - mousePosition.x);
+        canvasProps.boxOffset.y1 = Math.abs(mousePosition.y - boxSelected.y);
+        canvasProps.boxOffset.x2 = Math.abs(mousePosition.x - boxSelected.x);
+        canvasProps.boxOffset.y2 = Math.abs(mousePosition.y - boxSelected.y);
+        canvasProps.boxOffset.x3 = canvasProps.boxOffset.x2;
+        canvasProps.boxOffset.y3 = Math.abs(boxSelected.height + boxSelected.y - mousePosition.y);
+        canvasProps.boxOffset.x4 = canvasProps.boxOffset.x1;
+        canvasProps.boxOffset.y4 = canvasProps.boxOffset.y3;
         canvasProps.idAngleSelected = angleSelected(mousePosition, boxSelected);
       }
     },
     false
   );
+
+  const calculateRenderizeBox = (mousePosition) => {
+    if (canvasProps.idAngleSelected === "top_left") {
+      const newPositionX = mousePosition.x - canvasProps.boxOffset.x2;
+      const newPositionY = mousePosition.y - canvasProps.boxOffset.y2;
+      const desplazamientoX = canvasProps.elementSelected.x - newPositionX;
+      const desplazamientoY = canvasProps.elementSelected.y - newPositionY;
+
+      return {
+        x: newPositionX,
+        y: newPositionY,
+        width: canvasProps.elementSelected.width + desplazamientoX,
+        height: canvasProps.elementSelected.height + desplazamientoY,
+      };
+    }
+    if (canvasProps.idAngleSelected === "top_right") {
+
+      const newPositionX = mousePosition.x + canvasProps.boxOffset.x1;
+      const newPositionY = mousePosition.y - canvasProps.boxOffset.y1;
+      const desplazamientoX = newPositionX - canvasProps.elementSelected.width - canvasProps.elementSelected.x;
+      const desplazamientoY = canvasProps.elementSelected.y - newPositionY;
+
+      return {
+        y: newPositionY,
+        width: canvasProps.elementSelected.width + desplazamientoX,
+        height: canvasProps.elementSelected.height + desplazamientoY,
+      };
+    }
+    if (canvasProps.idAngleSelected === "bottom_left") {
+      const newPositionX = mousePosition.x - canvasProps.boxOffset.x3;
+      const desplazamientoX = canvasProps.elementSelected.x - newPositionX;
+
+      const currentHeigth = canvasProps.elementSelected.height + canvasProps.elementSelected.y;
+      const desplazamientoY = mousePosition.y + canvasProps.boxOffset.y3 - currentHeigth;
+
+      return {
+        x: newPositionX,
+        width: canvasProps.elementSelected.width + desplazamientoX,
+        height: canvasProps.elementSelected.height + desplazamientoY,
+      };
+    }
+    if (canvasProps.idAngleSelected === "bottom_right") {
+      return {
+        width: mousePosition.x - canvasProps.elementSelected.x + canvasProps.boxOffset.x4,
+        height: mousePosition.y - canvasProps.elementSelected.y + canvasProps.boxOffset.y4,
+      };
+    }
+  };
+
+  const calculatePositionBox = (mousePosition) => {
+    return {
+      x: mousePosition.x - canvasProps.boxOffset.x2,
+      y: mousePosition.y - canvasProps.boxOffset.y2,
+    };
+  };
 
   canvas.addEventListener(
     "mousemove",
@@ -153,11 +220,18 @@ const onEvents = (ctx) => {
 
       if (canvasProps.elementSelected) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const x = mousePosition.x - canvasProps.boxOffset.x;
-        const y = mousePosition.y - canvasProps.boxOffset.y;
 
-        canvasProps.elementSelected.x = x;
-        canvasProps.elementSelected.y = y;
+        const newPosition = canvasProps.idAngleSelected
+          ? calculateRenderizeBox(mousePosition)
+          : calculatePositionBox(mousePosition);
+
+        console.log(canvasProps.elementSelected)
+        console.log(newPosition)
+
+        canvasProps.elementSelected = {
+          ...canvasProps.elementSelected,
+          ...newPosition,
+        };
 
         const graphIndex = boxs.findIndex(
           (item) => item.id === canvasProps.elementSelected.id
