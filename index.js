@@ -1,10 +1,18 @@
 const canvas = document.getElementById("lienzo");
-const HEIGHT_BOX = 150;
-const WIDTH_BOX = 150;
+const HEIGHT_BOX = 50;
 const WIDTH_BOX_ANGLE = 10;
 const HEIGHT_BOX_ANGLE = 10;
 const CENTER_X_CANVAS = canvas.width / 4;
 const CENTER_Y_CANVAS = canvas.height / 4;
+
+const MARGIN_X = 80;
+const MARGIN_Y = MARGIN_X / 2;
+const MIN_MARGIN_BOTTOM = 20;
+const WIDTH_BOX = canvas.width - (MARGIN_X * 2);
+const INIT_Y_BOX1 = MARGIN_Y;
+const INIT_Y_BOX2 = INIT_Y_BOX1 + HEIGHT_BOX + MIN_MARGIN_BOTTOM;
+const INIT_Y_BOX3 = INIT_Y_BOX2 + HEIGHT_BOX + MIN_MARGIN_BOTTOM;
+const HEIGHT_BOX3 = canvas.height - (INIT_Y_BOX3 + MARGIN_Y);
 
 const canvasProps = {
   elementSelected: null,
@@ -25,8 +33,8 @@ const canvasProps = {
 const boxs = [
   {
     id: "box1",
-    x: 50,
-    y: 50,
+    x: MARGIN_X,
+    y: INIT_Y_BOX1,
     width: WIDTH_BOX,
     height: HEIGHT_BOX,
     weight: 1,
@@ -36,8 +44,8 @@ const boxs = [
   },
   {
     id: "box2",
-    x: 175,
-    y: 125,
+    x: MARGIN_X,
+    y: INIT_Y_BOX2,
     width: WIDTH_BOX,
     height: HEIGHT_BOX,
     weight: 1,
@@ -47,10 +55,10 @@ const boxs = [
   },
   {
     id: "box3",
-    x: 245,
-    y: 189,
+    x: MARGIN_X,
+    y: INIT_Y_BOX3,
     width: WIDTH_BOX,
-    height: HEIGHT_BOX,
+    height: HEIGHT_BOX3,
     weight: 1,
     type: "stroke",
     color: "#008080",
@@ -259,6 +267,7 @@ const onEvents = (ctx) => {
   canvas.addEventListener(
     "mouseup",
     function (event) {
+      console.log(canvasProps.elementSelected);
       canvasProps.elementSelected = null;
       canvasProps.idAngleSelected = null;
     },
